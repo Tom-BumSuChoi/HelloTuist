@@ -1,6 +1,6 @@
 import Foundation
 
-public struct CoworkingSpace: Codable, Equatable, Identifiable {
+public struct CoworkingSpace: Codable, Equatable, Hashable, Identifiable {
     public let id: String
     public let name: String
     public let address: String

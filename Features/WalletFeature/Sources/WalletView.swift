@@ -133,7 +133,7 @@ public struct WalletView: View {
 }
 
 struct TransactionCard: View {
-    let transaction: Transaction
+    let transaction: PaymentDomainInterface.Transaction
 
     var body: some View {
         NomadCard {

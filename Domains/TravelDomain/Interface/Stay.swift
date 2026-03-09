@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Stay: Codable, Equatable, Identifiable {
+public struct Stay: Codable, Equatable, Hashable, Identifiable {
     public let id: String
     public let name: String
     public let type: StayType
@@ -49,7 +49,7 @@ public struct Stay: Codable, Equatable, Identifiable {
     }
 }
 
-public enum StayType: String, Codable, CaseIterable {
+public enum StayType: String, Codable, CaseIterable, Hashable {
     case hotel
     case hostel
     case airbnb

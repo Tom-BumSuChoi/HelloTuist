@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Flight: Codable, Equatable, Identifiable {
+public struct Flight: Codable, Equatable, Hashable, Identifiable {
     public let id: String
     public let airline: String
     public let flightNumber: String
@@ -37,7 +37,7 @@ public struct Flight: Codable, Equatable, Identifiable {
     }
 }
 
-public struct Airport: Codable, Equatable {
+public struct Airport: Codable, Equatable, Hashable {
     public let code: String
     public let name: String
     public let city: String
@@ -51,7 +51,7 @@ public struct Airport: Codable, Equatable {
     }
 }
 
-public enum CabinClass: String, Codable, CaseIterable {
+public enum CabinClass: String, Codable, CaseIterable, Hashable {
     case economy
     case premiumEconomy
     case business

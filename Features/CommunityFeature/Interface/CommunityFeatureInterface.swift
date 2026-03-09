@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Post: Codable, Equatable, Identifiable {
+public struct Post: Codable, Equatable, Hashable, Identifiable {
     public let id: String
     public let authorId: String
     public let authorName: String
@@ -35,7 +35,7 @@ public struct Post: Codable, Equatable, Identifiable {
     }
 }
 
-public enum PostCategory: String, Codable, CaseIterable {
+public enum PostCategory: String, Codable, CaseIterable, Hashable {
     case restaurant
     case cafe
     case travelTip
