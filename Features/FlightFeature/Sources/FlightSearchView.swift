@@ -1,18 +1,30 @@
 import SwiftUI
+import ComposableArchitecture
 import DesignSystem
 import TravelDomainInterface
 
+/// Dumb View - state 렌더링, action 전송만
+/// 문자열은 FlightSearchReducer.State에서 관리
 public struct FlightSearchView: View {
-    @StateObject private var viewModel: FlightSearchViewModel
+    @Bindable var store: StoreOf<FlightSearchReducer>
 
-    public init(viewModel: FlightSearchViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel)
+    public init(store: StoreOf<FlightSearchReducer>) {
+        self.store = store
+    }
+
+    /// 기존 ViewModel 기반 호환용 (Example, 테스트 등)
+    public init(flightSearchUseCase: FlightSearchUseCaseType) {
+        self.store = Store(initialState: FlightSearchReducer.State()) {
+            FlightSearchReducer()
+        } withDependencies: {
+            $0.flightSearchUseCase = flightSearchUseCase
+        }
     }
 
     public var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(spacing: NomadSpacing.lg) {
                     searchSection
                     statusSection
                     resultsList
@@ -20,35 +32,37 @@ public struct FlightSearchView: View {
                 .padding()
             }
             .background(NomadColors.surface)
-            .navigationTitle("항공권 검색")
+            .navigationTitle(store.navigationTitle)
         }
     }
 
     private var searchSection: some View {
         NomadCard {
-            VStack(spacing: 16) {
-                NomadTextField("출발지 (예: ICN)", text: $viewModel.origin, icon: "airplane.departure")
-                NomadTextField("도착지 (예: BKK)", text: $viewModel.destination, icon: "airplane.arrival")
-                DatePicker("출발일", selection: $viewModel.departureDate, displayedComponents: .date)
+            VStack(spacing: NomadSpacing.md) {
+                NomadTextField(store.originPlaceholder, text: $store.origin, icon: "airplane.departure")
+                NomadTextField(store.destinationPlaceholder, text: $store.destination, icon: "airplane.arrival")
+                DatePicker(store.departureLabel, selection: $store.departureDate, displayedComponents: .date)
                     .font(NomadFonts.body)
-                Picker("좌석 등급", selection: $viewModel.cabinClass) {
+                Picker(store.cabinClassLabel, selection: $store.cabinClass) {
                     ForEach(CabinClass.allCases, id: \.self) { cabin in
                         Text(cabin.rawValue.capitalized).tag(cabin)
                     }
                 }
                 .pickerStyle(.segmented)
                 .font(NomadFonts.caption)
-                NomadButton("항공권 검색", action: viewModel.search)
+                NomadButton(store.searchButtonTitle) {
+                    store.send(.searchTapped)
+                }
             }
         }
     }
 
     @ViewBuilder
     private var statusSection: some View {
-        if viewModel.isLoading {
-            ProgressView("항공편을 검색 중입니다...")
-                .padding(.top, 32)
-        } else if let error = viewModel.errorMessage {
+        if store.isLoading {
+            ProgressView(store.loadingMessage)
+                .padding(.top, NomadSpacing.xxl)
+        } else if let error = store.errorMessage {
             NomadCard {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -58,22 +72,22 @@ public struct FlightSearchView: View {
                         .foregroundColor(NomadColors.error)
                 }
             }
-        } else if viewModel.hasSearched && viewModel.flights.isEmpty {
-            VStack(spacing: 8) {
+        } else if store.hasSearched && store.flights.isEmpty {
+            VStack(spacing: NomadSpacing.xs) {
                 Image(systemName: "airplane.circle")
                     .font(.system(size: 40))
                     .foregroundColor(NomadColors.onSurfaceSecondary)
-                Text("검색 결과가 없습니다")
+                Text(store.emptyResultMessage)
                     .font(NomadFonts.body)
                     .foregroundColor(NomadColors.onSurfaceSecondary)
             }
-            .padding(.top, 32)
+            .padding(.top, NomadSpacing.xxl)
         }
     }
 
     private var resultsList: some View {
-        LazyVStack(spacing: 12) {
-            ForEach(viewModel.flights) { flight in
+        LazyVStack(spacing: NomadSpacing.sm) {
+            ForEach(store.flights) { flight in
                 NavigationLink(value: flight) {
                     FlightResultCard(flight: flight)
                 }
@@ -81,7 +95,7 @@ public struct FlightSearchView: View {
             }
         }
         .navigationDestination(for: Flight.self) { flight in
-            FlightDetailView(flight: flight, onBook: { viewModel.bookFlight(flight) })
+            FlightDetailView(flight: flight, onBook: { store.send(.bookFlightTapped(flight)) })
         }
     }
 }
@@ -91,7 +105,7 @@ struct FlightResultCard: View {
 
     var body: some View {
         NomadCard {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: NomadSpacing.xs) {
                 HStack {
                     Text(flight.airline)
                         .font(NomadFonts.headline)
@@ -110,7 +124,7 @@ struct FlightResultCard: View {
                         .font(NomadFonts.title)
                     Spacer()
                     VStack(alignment: .trailing) {
-                        Text("\(flight.price)")
+                        Text(verbatim: "\(flight.price)")
                             .font(NomadFonts.headline)
                             .foregroundColor(NomadColors.accent)
                         Text(flight.currency)
@@ -121,10 +135,10 @@ struct FlightResultCard: View {
                 HStack {
                     Text(flight.cabinClass.rawValue.capitalized)
                         .font(NomadFonts.small)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
+                        .padding(.horizontal, NomadSpacing.xs)
+                        .padding(.vertical, NomadSpacing.xxs)
                         .background(NomadColors.accent.opacity(0.1))
-                        .cornerRadius(6)
+                        .cornerRadius(NomadRadius.sm)
                     Spacer()
                 }
             }

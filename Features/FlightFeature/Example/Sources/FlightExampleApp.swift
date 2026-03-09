@@ -7,11 +7,7 @@ import TravelDomainInterface
 struct FlightExampleApp: App {
     var body: some Scene {
         WindowGroup {
-            FlightSearchView(
-                viewModel: FlightSearchViewModel(
-                    flightSearchUseCase: PreviewFlightSearchUseCase()
-                )
-            )
+            FlightSearchView(flightSearchUseCase: PreviewFlightSearchUseCase())
         }
     }
 }
